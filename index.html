@@ -21,13 +21,15 @@
 
     <!-- Textbox (textarea) -->
     <div class="mt-4">
-        <textarea id="textArea" class="px-3 py-2 text-base border rounded-md full-height" style="font-size: 18px; width: 800px;"></textarea>
+        <textarea id="textArea" class="px-3 py-2 text-base border rounded-md full-height" style="font-size: 24px; width: 800px; line-height: 30px; text-align: justify;"></textarea>
     </div>
 
     <script>
         // Focus on the textarea on page load
         window.onload = function() {
             document.getElementById('textArea').focus();
+            // scroll to the top of the textarea
+            document.getElementById('textArea').scrollTop = 0;
         };
         // Load text from localStorage on page load
         document.addEventListener('DOMContentLoaded', (event) => {
