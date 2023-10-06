@@ -23,6 +23,34 @@
         width: calc(800px - 16rem); /* Subtracting the sidebar's width */
         margin-left: 16rem; /* Pushing the editor to the right of the sidebar */
       }
+      ul#fileList li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        padding: 8px;
+        border-radius: 8px;
+        transition: background 0.3s;
+      }
+
+      ul#fileList li:hover {
+        background: #f0f0f0;
+      }
+
+      ul#fileList li.active {
+        background: #e2e8f0;
+      }
+
+      .deleteBtn {
+        color: red;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      ul#fileList li:hover .deleteBtn {
+        opacity: 1;
+      }
     </style>
   </head>
   <body class="bg-gray-100 h-screen flex flex-col items-center">
@@ -31,13 +59,13 @@
       <h1 class="text-2xl">Reader / Writer App</h1>
     </div>
 
-    <div class="h-full fixed left-0 top-0 w-64 bg-white border-r">
-      <ul id="fileList" class="list-decimal pl-4">
+    <div class="h-full fixed left-0 top-0 w-64 bg-gray-100 border-r p-4">
+      <ul id="fileList" class="space-y-2">
         <!-- Files will be added dynamically here -->
       </ul>
       <button
         id="addFile"
-        class="block w-full bg-blue-500 hover:bg-blue-600 text-white py-2 mt-4"
+        class="block w-full bg-blue-500 hover:bg-blue-600 text-white py-2 mt-4 rounded-md"
       >
         + New
       </button>
@@ -58,6 +86,17 @@
     </div>
 
     <script>
+      function handleDelete(e, filename) {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to delete this file?")) {
+          localStorage.removeItem(`file_${filename}`);
+          e.target.closest("li").remove();
+          if (currentFile === filename) {
+            document.getElementById("textArea").value = "";
+          }
+        }
+      }
+
       // When command-s is pressed, do nothing
       document.addEventListener("keydown", (event) => {
         if (event.keyCode === 83 && (event.ctrlKey || event.metaKey)) {
@@ -95,8 +134,13 @@
         );
         files.sort().forEach((file) => {
           const li = document.createElement("li");
-          li.textContent = file.replace("file_", "");
-          li.onclick = () => loadFile(li.textContent);
+          li.innerHTML = `<span>${file.replace(
+            "file_",
+            ""
+          )}</span><span class="deleteBtn">×</span>`;
+          li.querySelector(".deleteBtn").onclick = (e) =>
+            handleDelete(e, file.replace("file_", ""));
+          li.onclick = () => loadFile(file.replace("file_", ""));
           fileList.appendChild(li);
         });
       });
@@ -106,6 +150,15 @@
         const content = localStorage.getItem(`file_${filename}`);
         document.getElementById("textArea").value = content || "";
         currentFile = filename;
+
+        // Highlight the active file
+        document.querySelectorAll("#fileList li").forEach((li) => {
+          if (li.textContent.includes(filename)) {
+            li.classList.add("active");
+          } else {
+            li.classList.remove("active");
+          }
+        });
       }
 
       // Update save logic to take currentFile into account
@@ -118,11 +171,29 @@
         const filename = prompt("Enter filename:");
         if (filename) {
           const li = document.createElement("li");
-          li.textContent = filename;
-          li.onclick = () => loadFile(li.textContent);
+          li.innerHTML = `<span>${filename}</span><span class="deleteBtn">×</span>`;
+          li.querySelector(".deleteBtn").onclick = (e) => {
+            e.stopPropagation();
+            if (confirm("Are you sure you want to delete this file?")) {
+              localStorage.removeItem(`file_${filename}`);
+              li.remove();
+              if (currentFile === filename) {
+                document.getElementById("textArea").value = "";
+              }
+            }
+          };
+          li.onclick = () => loadFile(filename);
           document.getElementById("fileList").appendChild(li);
           document.getElementById("textArea").value = "";
           currentFile = filename;
+          // Highlight the newly created file
+          document.querySelectorAll("#fileList li").forEach((li) => {
+            if (li.textContent.includes(filename)) {
+              li.classList.add("active");
+            } else {
+              li.classList.remove("active");
+            }
+          });
         }
       });
     </script>
